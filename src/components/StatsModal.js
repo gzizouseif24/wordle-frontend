@@ -2,24 +2,19 @@ import React, { useEffect, useState } from 'react';
 import './StatsModal.css';
 import config from '../config';
 
-function StatsModal({ onClose, localStats }) {
-  const [stats, setStats] = useState(null);
+function StatsModal({ onClose, stats, dailyGameCompleted, onPlayAgain, onHome }) {
+  const [serverStats, setServerStats] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [dataSource, setDataSource] = useState('local'); // 'local' or 'server'
 
   useEffect(() => {
-    // Set local stats initially
-    if (localStats) {
-      setStats(localStats);
-    }
-    
     // Check if user is logged in
     const token = localStorage.getItem('wordleToken');
     if (token) {
       fetchServerStats(token);
     }
-  }, [localStats]);
+  }, []);
 
   const fetchServerStats = async (token) => {
     setLoading(true);
@@ -35,7 +30,7 @@ function StatsModal({ onClose, localStats }) {
       }
 
       const data = await response.json();
-      setStats(data);
+      setServerStats(data);
       setDataSource('server');
       setLoading(false);
     } catch (error) {
@@ -50,11 +45,14 @@ function StatsModal({ onClose, localStats }) {
   };
 
   const calculateMaxDistribution = () => {
-    if (!stats || !stats.guessDistribution) return 1;
-    return Math.max(...stats.guessDistribution, 1);
+    const currentStats = dataSource === 'server' && serverStats ? serverStats : stats;
+    if (!currentStats || !currentStats.guessDistribution) return 1;
+    return Math.max(...currentStats.guessDistribution, 1);
   };
 
-  if (loading) {
+  const displayStats = dataSource === 'server' && serverStats ? serverStats : stats;
+
+  if (loading && !displayStats) {
     return (
       <div className="stats-modal-overlay">
         <div className="stats-modal-content">
@@ -64,7 +62,7 @@ function StatsModal({ onClose, localStats }) {
     );
   }
 
-  if (!stats) {
+  if (!displayStats) {
     return (
       <div className="stats-modal-overlay" onClick={onClose}>
         <div className="stats-modal-content" onClick={(e) => e.stopPropagation()}>
@@ -89,26 +87,31 @@ function StatsModal({ onClose, localStats }) {
         
         <div className="stats-summary">
           <div className="stats-box">
-            <div className="stats-value">{stats.totalGames || 0}</div>
+            <div className="stats-value">{displayStats.gamesPlayed || 0}</div>
             <div className="stats-label">عدد الألعاب</div>
           </div>
           <div className="stats-box">
-            <div className="stats-value">{stats.wins || 0}</div>
+            <div className="stats-value">{displayStats.gamesWon || 0}</div>
             <div className="stats-label">عدد الفوز</div>
           </div>
           <div className="stats-box">
-            <div className="stats-value">{stats.winRate ? `${stats.winRate}%` : '0%'}</div>
+            <div className="stats-value">
+              {displayStats.gamesPlayed 
+                ? `${Math.round((displayStats.gamesWon / displayStats.gamesPlayed) * 100)}%` 
+                : '0%'
+              }
+            </div>
             <div className="stats-label">نسبة الفوز</div>
           </div>
           <div className="stats-box">
-            <div className="stats-value">{stats.averageAttempts || 0}</div>
-            <div className="stats-label">متوسط المحاولات</div>
+            <div className="stats-value">{displayStats.currentStreak || 0}</div>
+            <div className="stats-label">سلسلة الفوز</div>
           </div>
         </div>
         
         <div className="stats-distribution">
           <h3>توزيع المحاولات</h3>
-          {stats.guessDistribution && stats.guessDistribution.map((count, index) => (
+          {displayStats.guessDistribution && displayStats.guessDistribution.map((count, index) => (
             <div className="distribution-row" key={index}>
               <div className="guess-number">{index + 1}</div>
               <div className="guess-bar-container">
@@ -126,7 +129,7 @@ function StatsModal({ onClose, localStats }) {
           ))}
         </div>
 
-        {localStorage.getItem('wordleToken') && (
+        {localStorage.getItem('wordleToken') && serverStats && (
           <div className="data-source-toggle">
             <button 
               onClick={toggleDataSource} 
@@ -143,9 +146,23 @@ function StatsModal({ onClose, localStats }) {
           </div>
         )}
         
-        <button className="stats-close-btn" onClick={onClose}>
-          إغلاق
-        </button>
+        {dailyGameCompleted && (
+          <div className="daily-completed-actions">
+            <p>لقد أكملت لعبة اليوم!</p>
+            <button className="play-random-btn" onClick={onPlayAgain}>
+              العب كلمة عشوائية
+            </button>
+          </div>
+        )}
+        
+        <div className="stats-modal-buttons">
+          <button className="stats-home-btn" onClick={onHome}>
+            الصفحة الرئيسية
+          </button>
+          <button className="stats-close-btn" onClick={onClose}>
+            إغلاق
+          </button>
+        </div>
       </div>
     </div>
   );

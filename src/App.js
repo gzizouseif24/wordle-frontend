@@ -30,6 +30,7 @@ function App() {
   const [showStatsModal, setShowStatsModal] = useState(false); // Stats modal
   const [user, setUser] = useState(null); // Logged-in user info
   const [dailyGameCompleted, setDailyGameCompleted] = useState(false); // Track if daily game is completed
+  const [isRandomMode, setIsRandomMode] = useState(false); // New state for random word mode
   
   // Check if user is already logged in and if daily game is completed
   useEffect(() => {
@@ -60,7 +61,8 @@ function App() {
 
   // Use useCallback to memoize the handleKeyPress function
   const handleKeyPress = useCallback((letter) => {
-    if (gameOver || dailyGameCompleted) return;
+    if (gameOver) return;
+    if (dailyGameCompleted && !isRandomMode) return;
     
     const currentGuessWord = guesses[currentGuess];
     
@@ -86,18 +88,26 @@ function App() {
       // Check if the guess is correct
       if (currentGuessWord === currentWord) {
         setGameOver(true);
-        setModalContent('أحسنت! لقد فزت');
+        setModalContent(isRandomMode ? 'أحسنت! جاهز للكلمة التالية؟' : 'أحسنت! لقد فزت');
         setShowModal(true);
         saveGameStats(true, currentGuess + 1);
-        saveGameToServer(true, currentGuess + 1, newSubmittedGuesses);
-        markDailyGameCompleted();
+        
+        // Only save to server if it's the daily game (not random mode)
+        if (!isRandomMode) {
+          saveGameToServer(true, currentGuess + 1, newSubmittedGuesses);
+          markDailyGameCompleted();
+        }
       } else if (currentGuess === 5) {
         setGameOver(true);
         setModalContent(`انتهت اللعبة! الكلمة كانت ${currentWord}`);
         setShowModal(true);
         saveGameStats(false, 0);
-        saveGameToServer(false, 6, newSubmittedGuesses);
-        markDailyGameCompleted();
+        
+        // Only save to server if it's the daily game (not random mode)
+        if (!isRandomMode) {
+          saveGameToServer(false, 6, newSubmittedGuesses);
+          markDailyGameCompleted();
+        }
       } else {
         setCurrentGuess(currentGuess + 1);
       }
@@ -114,7 +124,7 @@ function App() {
         setGuesses(newGuesses);
       }
     }
-  }, [currentGuess, currentWord, gameOver, guesses, submittedGuesses, dailyGameCompleted]); // Add dailyGameCompleted dependency
+  }, [currentGuess, currentWord, gameOver, guesses, submittedGuesses, dailyGameCompleted, isRandomMode]); // Added isRandomMode
   
   // Mark today's game as completed
   const markDailyGameCompleted = () => {
@@ -171,7 +181,7 @@ function App() {
     return () => {
       window.removeEventListener('keydown', handlePhysicalKeyboard);
     };
-  }, [guesses, currentGuess, gameOver, currentWord, showAuthModal, handleKeyPress, dailyGameCompleted]); // Include dailyGameCompleted
+  }, [guesses, currentGuess, gameOver, currentWord, showAuthModal, handleKeyPress, dailyGameCompleted, isRandomMode]); // Added isRandomMode
   
   // Save game statistics to localStorage
   const saveGameStats = (won, attempts) => {
@@ -183,18 +193,21 @@ function App() {
       guessDistribution: [0, 0, 0, 0, 0, 0]
     };
     
-    stats.gamesPlayed += 1;
-    
-    if (won) {
-      stats.gamesWon += 1;
-      stats.currentStreak += 1;
-      stats.maxStreak = Math.max(stats.maxStreak, stats.currentStreak);
-      stats.guessDistribution[attempts - 1] += 1;
-    } else {
-      stats.currentStreak = 0;
+    // Only update stats for daily games, not random mode
+    if (!isRandomMode) {
+      stats.gamesPlayed += 1;
+      
+      if (won) {
+        stats.gamesWon += 1;
+        stats.currentStreak += 1;
+        stats.maxStreak = Math.max(stats.maxStreak, stats.currentStreak);
+        stats.guessDistribution[attempts - 1] += 1;
+      } else {
+        stats.currentStreak = 0;
+      }
+      
+      localStorage.setItem('gameStats', JSON.stringify(stats));
     }
-    
-    localStorage.setItem('gameStats', JSON.stringify(stats));
   };
 
   // Save game to server if user is logged in
@@ -229,18 +242,52 @@ function App() {
   const closeModal = () => {
     setShowModal(false);
     
-    // If game is over, show stats
+    // If game is over, show stats for daily game or start new random game
     if (gameOver) {
-      setShowStatsModal(true);
+      if (isRandomMode) {
+        // For random mode, offer another random game
+        startRandomGame();
+      } else {
+        // For daily game, show stats
+        setShowStatsModal(true);
+      }
     }
   };
   
-  // Handle Play Again button - Removed as we only want to play once per day
-  // The handlePlayAgain function is now deleted since we don't want players to play multiple times
+  // Start a new random game
+  const startRandomGame = async () => {
+    try {
+      // Reset game state
+      setGuesses(Array(6).fill(''));
+      setCurrentGuess(0);
+      setGameOver(false);
+      setSubmittedGuesses([]);
+      setIsRandomMode(true);
+      
+      // Get a random word from the API
+      const response = await fetch(`${config.API_URL}/api/words/random`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch random word');
+      }
+      
+      const data = await response.json();
+      setCurrentWord(data.word);
+      
+      // Close any open modals
+      setShowStatsModal(false);
+      setShowHowToPlay(false);
+    } catch (error) {
+      console.error('Error starting random game:', error);
+      // If API call fails, fall back to a word from the local list
+      const randomIndex = Math.floor(Math.random() * wordList.length);
+      setCurrentWord(wordList[randomIndex]);
+    }
+  };
 
   // Start the game from home page
   const handleStartGame = () => {
-    // If today's game is already completed, go directly to stats
+    // If today's game is already completed, give option to play random words
     if (dailyGameCompleted) {
       setShowHomePage(false);
       setShowStatsModal(true);
@@ -249,146 +296,166 @@ function App() {
       setShowHowToPlay(true);
     }
   };
-
-  // Close how to play and start the actual game
+  
+  // Close the how-to-play popup and start the game
   const handleCloseHowToPlay = () => {
     setShowHowToPlay(false);
-    
-    // If today's game is already completed, show stats instead
-    if (dailyGameCompleted) {
-      setShowStatsModal(true);
-      return;
-    }
-    
-    // Initialize the game when starting from how-to-play
-    let selectedWord;
-    if (DEBUG_INITIAL_WORD && DEBUG_INITIAL_WORD.length === 5) { 
-      selectedWord = DEBUG_INITIAL_WORD;
-      console.log("Using debug initial word:", selectedWord); 
-    } else {
-      // Fallback to random word selection
-      const randomIndex = Math.floor(Math.random() * wordList.length);
-      selectedWord = wordList[randomIndex];
-      console.log("Selected random word:", selectedWord); // Original log
-    }
-    setCurrentWord(selectedWord);
     
     // Reset game state
     setGuesses(Array(6).fill(''));
     setCurrentGuess(0);
     setGameOver(false);
     setSubmittedGuesses([]);
+    
+    // Set to daily game mode (not random)
+    setIsRandomMode(false);
+    
+    // Fetch the daily word from the API
+    const fetchDailyWord = async () => {
+      try {
+        // Use the API to get the daily word
+        const response = await fetch(`${config.API_URL}/api/words/daily`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch daily word');
+        }
+        
+        const data = await response.json();
+        setCurrentWord(data.word);
+      } catch (error) {
+        console.error('Error fetching daily word:', error);
+        // Fallback if the API call fails - select a random word from our local list
+        // Or use the debug word if set
+        if (DEBUG_INITIAL_WORD) {
+          setCurrentWord(DEBUG_INITIAL_WORD);
+        } else {
+          const randomIndex = Math.floor(Math.random() * wordList.length);
+          setCurrentWord(wordList[randomIndex]);
+        }
+      }
+    };
+    
+    fetchDailyWord();
   };
-
-  // Show the authentication modal
+  
+  // Handle Play Random Words button click
+  const handlePlayRandomWords = () => {
+    setShowStatsModal(false);
+    startRandomGame();
+  };
+  
+  // Reset to home page
+  const handleGoHome = () => {
+    setShowHomePage(true);
+    setGameOver(false);
+    setIsRandomMode(false);
+    setShowStatsModal(false);
+  };
+  
+  // Show authentication modal
   const handleShowAuthModal = () => {
     setShowAuthModal(true);
   };
-
-  // Close the authentication modal
+  
+  // Close authentication modal
   const handleCloseAuthModal = () => {
     setShowAuthModal(false);
   };
-
-  // Handle successful login
+  
+  // Handle user login
   const handleLogin = (userData) => {
     setUser(userData);
+    localStorage.setItem('wordleUser', JSON.stringify(userData));
   };
-
-  // Handle logout
+  
+  // Handle user logout
   const handleLogout = () => {
-    localStorage.removeItem('wordleToken');
-    localStorage.removeItem('wordleUser');
     setUser(null);
+    localStorage.removeItem('wordleUser');
+    localStorage.removeItem('wordleToken');
   };
-
+  
   // Show stats modal
   const handleShowStats = () => {
     setShowStatsModal(true);
   };
-
+  
   // Close stats modal
   const handleCloseStats = () => {
     setShowStatsModal(false);
   };
-
-  // Get local stats from localStorage
+  
+  // Get local game stats
   const getLocalStats = () => {
-    const stats = JSON.parse(localStorage.getItem('gameStats')) || {
-      totalGames: 0,
-      wins: 0,
-      winRate: 0,
-      averageAttempts: 0,
+    return JSON.parse(localStorage.getItem('gameStats')) || {
+      gamesPlayed: 0,
+      gamesWon: 0,
+      currentStreak: 0,
+      maxStreak: 0,
       guessDistribution: [0, 0, 0, 0, 0, 0]
     };
-    
-    if (stats.gamesPlayed > 0) {
-      stats.totalGames = stats.gamesPlayed;
-      stats.winRate = (stats.gamesWon / stats.gamesPlayed) * 100;
-      
-      // Calculate average attempts (if there are wins)
-      if (stats.gamesWon > 0) {
-        // Calculate total guesses from distribution
-        const totalGuesses = stats.guessDistribution.reduce(
-          (total, count, index) => total + count * (index + 1),
-          0
-        );
-        stats.averageAttempts = totalGuesses / stats.gamesWon;
-      }
-    }
-    
-    return stats;
   };
-
+  
   return (
-    <div className="app" dir="rtl">
+    <div className="app-container">
+      <Header 
+        onShowStats={handleShowStats} 
+        onShowAuth={handleShowAuthModal}
+        onLogout={handleLogout}
+        user={user}
+        isLoggedIn={!!user}
+      />
+      
       {showHomePage ? (
         <HomePage onStartGame={handleStartGame} />
       ) : (
         <>
-          <Header />
-          <div className="user-controls">
-            {user ? (
-              <>
-                <span className="welcome-message">مرحبًا {user.username}</span>
-                <button className="stats-button" onClick={handleShowStats}>الإحصائيات</button>
-                <button className="logout-button" onClick={handleLogout}>تسجيل الخروج</button>
-              </>
-            ) : (
-              <>
-                <button className="login-button" onClick={handleShowAuthModal}>تسجيل الدخول</button>
-                <button className="stats-button" onClick={handleShowStats}>الإحصائيات</button>
-              </>
-            )}
-          </div>
-          {dailyGameCompleted ? (
-            <div className="completed-message">
-              <h2>لقد أكملت لعبة اليوم!</h2>
-              <p>عد غدًا للعب مرة أخرى.</p>
-              <button onClick={handleShowStats} className="show-stats-button">عرض الإحصائيات</button>
-            </div>
-          ) : (
-            <>
-              <GameBoard 
-                guesses={guesses} 
-                submittedGuesses={submittedGuesses}
-                currentGuess={currentGuess} 
-                currentWord={currentWord} 
-              />
-              <Keyboard 
-                onKeyPress={handleKeyPress} 
-                submittedGuesses={submittedGuesses} 
-                currentWord={currentWord} 
-              />
-            </>
-          )}
-          <Footer />
-          {showModal && <Modal content={modalContent} onClose={closeModal} gameOver={gameOver} />}
+          <GameBoard 
+            guesses={guesses} 
+            currentGuess={currentGuess} 
+            currentWord={currentWord}
+            submittedGuesses={submittedGuesses}
+          />
+          <Keyboard 
+            onKeyPress={handleKeyPress} 
+            submittedGuesses={submittedGuesses}
+            currentWord={currentWord}
+          />
         </>
       )}
-      {showHowToPlay && <HowToPlay onClose={handleCloseHowToPlay} />}
-      {showAuthModal && <AuthModal onClose={handleCloseAuthModal} onLogin={handleLogin} />}
-      {showStatsModal && <StatsModal onClose={handleCloseStats} localStats={getLocalStats()} />}
+      
+      <Footer />
+      
+      {showModal && (
+        <Modal onClose={closeModal}>
+          <div className="modal-content">
+            <p>{modalContent}</p>
+            <button onClick={closeModal}>إغلاق</button>
+          </div>
+        </Modal>
+      )}
+      
+      {showHowToPlay && (
+        <HowToPlay onClose={handleCloseHowToPlay} />
+      )}
+      
+      {showAuthModal && (
+        <AuthModal 
+          onClose={handleCloseAuthModal} 
+          onLogin={handleLogin}
+          apiUrl={config.API_URL}
+        />
+      )}
+      
+      {showStatsModal && (
+        <StatsModal 
+          onClose={handleCloseStats}
+          stats={getLocalStats()}
+          dailyGameCompleted={dailyGameCompleted}
+          onPlayAgain={handlePlayRandomWords} // New prop for playing random words
+          onHome={handleGoHome}
+        />
+      )}
     </div>
   );
 }

@@ -157,6 +157,68 @@
   color: white;
 }
 
+.daily-completed-actions {
+  width: 100%;
+  background-color: #1e3a5f;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.daily-completed-actions p {
+  color: #90caf9;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.play-random-btn {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: 'Tajawal', 'Amiri', sans-serif;
+  transition: background-color 0.2s;
+  width: 100%;
+  max-width: 250px;
+}
+
+.play-random-btn:hover {
+  background-color: #388e3c;
+}
+
+.stats-modal-buttons {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.stats-home-btn {
+  background-color: #3f51b5;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: 'Tajawal', 'Amiri', sans-serif;
+  transition: background-color 0.2s;
+  flex: 1;
+}
+
+.stats-home-btn:hover {
+  background-color: #303f9f;
+}
+
 .stats-close-btn {
   background-color: #f44336;
   color: white;
@@ -166,9 +228,9 @@
   font-size: 1rem;
   font-weight: bold;
   cursor: pointer;
-  margin-top: 1rem;
   font-family: 'Tajawal', 'Amiri', sans-serif;
   transition: background-color 0.2s;
+  flex: 1;
 }
 
 .stats-close-btn:hover {
