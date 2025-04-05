@@ -35,7 +35,7 @@ function App() {
   // Check if daily game is completed and reset for testing if needed
   useEffect(() => {
     // For testing: Reset localStorage to treat as new user when requested
-    const resetForTesting = true; // Set to true to reset for testing
+    const resetForTesting = false; // Set to false to preserve localStorage
     
     if (resetForTesting) {
       // Clear all game-related localStorage items
@@ -140,7 +140,7 @@ function App() {
   // Mark today's game as completed
   const markDailyGameCompleted = () => {
     const today = new Date().toDateString();
-    localStorage.setItem(config.STORAGE_KEYS.LAST_PLAYED, JSON.stringify({
+    localStorage.setItem(getUserLastPlayedKey(), JSON.stringify({
       date: today,
       completed: true
     }));
@@ -251,64 +251,64 @@ function App() {
     }
   };
   
-  // Close the how-to-play popup and start the game
-  const handleCloseHowToPlay = () => {
-    setShowHowToPlay(false);
-    
-    // Reset game state
-    setGuesses(Array(6).fill(''));
-    setCurrentGuess(0);
-    setGameOver(false);
-    setSubmittedGuesses([]);
-    
-    // Set to daily game mode (not random)
-    setIsRandomMode(false);
-    
-    // Generate a daily word based on the current date
-    const generateDailyWord = () => {
-      // Use the current date to seed the random number generator
-      const today = new Date();
-      const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-      
-      // Simple hash function to convert date string to a number
-      let hash = 0;
-      for (let i = 0; i < dateString.length; i++) {
-        hash = ((hash << 5) - hash) + dateString.charCodeAt(i);
-        hash |= 0; // Convert to 32bit integer
-      }
-      
-      // Use the hash to select a word from the list
-      const index = Math.abs(hash) % wordList.length;
-      return wordList[index];
-    };
-    
-    // Check if we already have today's word stored
-    const today = new Date().toDateString();
-    const storedWordData = localStorage.getItem(getUserDailyWordKey());
-    let dailyWord;
-    
-    if (storedWordData) {
-      const { date, word } = JSON.parse(storedWordData);
-      if (date === today) {
-        // Use the stored word if it's from today
-        dailyWord = word;
-      } else {
-        // Generate a new word for a new day
-        dailyWord = DEBUG_INITIAL_WORD || generateDailyWord();
-        // Store today's word with user-specific ID
-        localStorage.setItem(getUserDailyWordKey(), JSON.stringify({ date: today, word: dailyWord }));
-      }
-    } else {
-      // First time playing, generate and store a word
-      dailyWord = DEBUG_INITIAL_WORD || generateDailyWord();
-      localStorage.setItem(getUserDailyWordKey(), JSON.stringify({ date: today, word: dailyWord }));
+  // Function to initialize a new daily word
+  const generateDailyWord = () => {
+    // First check if DEBUG_INITIAL_WORD is set
+    if (DEBUG_INITIAL_WORD) {
+      console.log('DEBUG MODE: Using hardcoded initial word');
+      setCurrentWord(DEBUG_INITIAL_WORD);
+      localStorage.setItem(getUserCurrentWordKey(), DEBUG_INITIAL_WORD);
+      return;
     }
     
-    // Set the current word
-    setCurrentWord(dailyWord);
+    // Get today's date in a consistent format
+    const today = new Date();
+    const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
     
-    // Store the current word in localStorage for persistence with user-specific ID
-    localStorage.setItem(getUserCurrentWordKey(), dailyWord);
+    // Check if we already have the word for today in localStorage
+    const lastPlayedData = localStorage.getItem(getUserLastPlayedKey());
+    const savedDailyWord = localStorage.getItem(getUserDailyWordKey());
+    
+    // If we have data from last played game
+    if (lastPlayedData) {
+      try {
+        const parsedData = JSON.parse(lastPlayedData);
+        const lastPlayedDate = new Date(parsedData.date).toDateString();
+        const todayString = today.toDateString();
+        
+        // If it's the same day and we have a saved word, use that
+        if (lastPlayedDate === todayString && savedDailyWord) {
+          setCurrentWord(savedDailyWord);
+          localStorage.setItem(getUserCurrentWordKey(), savedDailyWord);
+          return;
+        }
+      } catch (error) {
+        console.error("Error parsing last played data:", error);
+        // Continue to generate a new word if there's an error
+      }
+    }
+    
+    // Simple hash function to convert date string to a number
+    let hash = 0;
+    for (let i = 0; i < dateString.length; i++) {
+      hash = ((hash << 5) - hash) + dateString.charCodeAt(i);
+      hash |= 0; // Convert to 32bit integer
+    }
+    
+    // Use the hash to select a word from the list (abs to ensure positive)
+    const index = Math.abs(hash) % wordList.length;
+    const wordOfTheDay = wordList[index];
+    
+    // Save daily word in localStorage
+    localStorage.setItem(getUserDailyWordKey(), wordOfTheDay);
+    localStorage.setItem(getUserCurrentWordKey(), wordOfTheDay);
+    setCurrentWord(wordOfTheDay);
+    
+    // Also update last played date
+    localStorage.setItem(getUserLastPlayedKey(), JSON.stringify({
+      date: today.toDateString(),
+      completed: false
+    }));
   };
   
   // Handle Play Random Words button click
@@ -347,6 +347,23 @@ function App() {
   const getLocalStats = () => {
     // Use the utility function to get user-specific stats
     return getUserStats();
+  };
+  
+  // Close the how-to-play popup and start the game
+  const handleCloseHowToPlay = () => {
+    setShowHowToPlay(false);
+    
+    // Reset game state
+    setGuesses(Array(6).fill(''));
+    setCurrentGuess(0);
+    setGameOver(false);
+    setSubmittedGuesses([]);
+    
+    // Set to daily game mode (not random)
+    setIsRandomMode(false);
+    
+    // Generate a new daily word
+    generateDailyWord();
   };
   
   return (

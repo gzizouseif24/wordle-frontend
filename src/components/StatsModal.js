@@ -2,117 +2,90 @@ import React from 'react';
 import './StatsModal.css';
 import { getUserDailyWordKey } from '../utils/userUtils';
 
-function StatsModal({ onClose, stats, dailyGameCompleted, onPlayAgain, onHome }) {
-  // Frontend-only app - only using local stats with user-specific ID
-
-  const calculateMaxDistribution = () => {
-    if (!stats || !stats.guessDistribution) return 1;
-    return Math.max(...stats.guessDistribution, 1);
-  };
-
-  const displayStats = stats;
-
-  // Loading state removed - frontend-only app uses local storage
-
-  if (!displayStats) {
-    return (
-      <div className="stats-modal-overlay" onClick={onClose}>
-        <div className="stats-modal-content" onClick={(e) => e.stopPropagation()}>
-          <h2 className="stats-modal-title">الإحصائيات</h2>
-          <p>لا توجد إحصائيات متاحة حاليًا</p>
-          <button className="stats-close-btn" onClick={onClose}>
-            إغلاق
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const maxValue = calculateMaxDistribution();
-
+const StatsModal = ({ stats, onClose, dailyGameCompleted, onPlayAgain, onHome }) => {
+  // Check if there are stats to display
+  const hasStats = stats && stats.gamesPlayed > 0;
+  
+  // Calculate win percentage
+  const winPercentage = hasStats ? Math.round((stats.gamesWon / stats.gamesPlayed) * 100) : 0;
+  
+  // Find the maximum value in the guess distribution for scaling
+  const maxDistribution = hasStats ? Math.max(...stats.guessDistribution) : 0;
+  
+  // Get today's word to display after completion
+  const dailyWord = localStorage.getItem(getUserDailyWordKey()) || "...";
+  
   return (
-    <div className="stats-modal-overlay" onClick={onClose}>
-      <div className="stats-modal-content" onClick={(e) => e.stopPropagation()}>
-        <h2 className="stats-modal-title">الإحصائيات</h2>
-        
-        <div className="stats-summary">
-          <div className="stats-box">
-            <div className="stats-value">{displayStats.gamesPlayed || 0}</div>
-            <div className="stats-label">عدد الألعاب</div>
-          </div>
-          <div className="stats-box">
-            <div className="stats-value">{displayStats.gamesWon || 0}</div>
-            <div className="stats-label">عدد الفوز</div>
-          </div>
-          <div className="stats-box">
-            <div className="stats-value">
-              {displayStats.gamesPlayed 
-                ? `${Math.round((displayStats.gamesWon / displayStats.gamesPlayed) * 100)}%` 
-                : '0%'
-              }
-            </div>
-            <div className="stats-label">نسبة الفوز</div>
-          </div>
-          <div className="stats-box">
-            <div className="stats-value">{displayStats.currentStreak || 0}</div>
-            <div className="stats-label">سلسلة الفوز</div>
-          </div>
+    <div className="stats-modal-overlay">
+      <div className="stats-modal">
+        <div className="stats-header">
+          <h2>الإحصائيات</h2>
+          <button className="close-button" onClick={onClose}>&times;</button>
         </div>
         
-        <div className="stats-distribution">
-          <h3>توزيع المحاولات</h3>
-          {displayStats.guessDistribution && displayStats.guessDistribution.map((count, index) => (
-            <div className="distribution-row" key={index}>
-              <div className="guess-number">{index + 1}</div>
-              <div className="guess-bar-container">
-                <div 
-                  className="guess-bar" 
-                  style={{ 
-                    width: `${(count / maxValue) * 100}%`,
-                    backgroundColor: count > 0 ? '#4caf50' : '#1e3a5f'
-                  }}
-                >
-                  {count > 0 && <span className="guess-count">{count}</span>}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Data source toggle removed - frontend-only app */}
-        
+        {/* Display daily word after completion */}
         {dailyGameCompleted && (
-          <div className="daily-completed-actions">
-            <p>لقد أكملت لعبة اليوم!</p>
-            {/* Always display the daily word when game is completed */}
-            <p className="daily-word">كلمة اليوم: {
-              (() => {
-                try {
-                  const storedWordData = localStorage.getItem(getUserDailyWordKey());
-                  return storedWordData ? JSON.parse(storedWordData).word : "";
-                } catch (error) {
-                  console.error("Error parsing daily word:", error);
-                  return "";
-                }
-              })()
-            }</p>
-            <button className="play-random-btn" onClick={onPlayAgain}>
-              العب كلمة عشوائية
-            </button>
+          <div className="daily-word-section">
+            <h3>كلمة اليوم</h3>
+            <p className="daily-word">{dailyWord}</p>
           </div>
         )}
         
-        <div className="stats-modal-buttons">
-          <button className="stats-home-btn" onClick={onHome}>
-            الصفحة الرئيسية
-          </button>
-          <button className="stats-close-btn" onClick={onClose}>
-            إغلاق
+        <div className="stats-container">
+          <div className="stat-box">
+            <div className="stat-value">{hasStats ? stats.gamesPlayed : 0}</div>
+            <div className="stat-label">لعبت</div>
+          </div>
+          <div className="stat-box">
+            <div className="stat-value">{winPercentage}</div>
+            <div className="stat-label">% فزت</div>
+          </div>
+          <div className="stat-box">
+            <div className="stat-value">{hasStats ? stats.currentStreak : 0}</div>
+            <div className="stat-label">سلسلة الحالية</div>
+          </div>
+          <div className="stat-box">
+            <div className="stat-value">{hasStats ? stats.maxStreak : 0}</div>
+            <div className="stat-label">أفضل سلسلة</div>
+          </div>
+        </div>
+        
+        <div className="distribution-container">
+          <h3>توزيع التخمينات</h3>
+          {hasStats && (
+            <div className="guess-distribution">
+              {stats.guessDistribution.map((count, index) => (
+                <div className="guess-row" key={index}>
+                  <div className="guess-number">{index + 1}</div>
+                  <div 
+                    className="guess-bar" 
+                    style={{ 
+                      width: maxDistribution > 0 ? `${(count / maxDistribution) * 100}%` : '10%',
+                      backgroundColor: count > 0 ? '#538d4e' : '#3a3a3c'
+                    }}
+                  >
+                    <span className="guess-count">{count}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        {/* Buttons for next actions */}
+        <div className="stats-actions">
+          {dailyGameCompleted && (
+            <button className="play-again-button" onClick={onPlayAgain}>
+              ألعب كلمات عشوائية
+            </button>
+          )}
+          <button className="home-button" onClick={onHome}>
+            العودة للصفحة الرئيسية
           </button>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default StatsModal;

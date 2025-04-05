@@ -8,7 +8,6 @@ export const wordList = [
   'فاكهة', // fruit
   'تفاحة', // apple
   'بطاطس', // potatoes
-  'فاكهة', // fruit
   'ليمون', // lemon
   'مدرسة', // school
   'مهندس', // engineer
@@ -23,23 +22,22 @@ export const wordList = [
   'مفتاح', // key
   'نافذة', // window
   'سجادة', // rug
-  'دستور', // constituition
+  'دستور', // constitution
   'دولار', // dollar
   'قداحة', // lighter
   'سفينة', // ship
-   'دولاب', // spiral
+  'دولاب', // cabinet
   'دينار', // dinar
   'منطقي', // logical
   'عفريت', // ghoul
   'مراهق', // teen
-  'مصباح', // lightbulb
-  'مفتاح', // key
-  'فانوس', // lightbulb
-  'زرافة', // giraff
+  'مصباح', // lamp
+  'فانوس', // lantern
+  'زرافة', // giraffe
   'عصابة', // gang
-  'قرطاس', // bag
-  'مهناد', // ???
-  'طاووس', // animal
+  'قرطاس', // paper
+  'مهناد', // name
+  'طاووس', // peacock
   'عصفور', // bird
   'طماطم', // tomato
   'مانجو', // mango
@@ -55,34 +53,27 @@ export const wordList = [
   'طبيبة', // doctor
   'رسالة', // letter
   'مصفاة', // refinery
-  'مروحة', /// fan
-  'حديقة', // garden
+  'مروحة', // fan
   'راقية', // elegant
   'تمساح', // crocodile
   'مكنسة', // broomstick
   'ببغاء', // parrot
   'فلسفة', // philosophy
-  'طماطم', // tomatoo
   'قرطاج', // carthage
   'دكتور', // doctor
   'دراسة', // study
   'تربية', // education
   'فراشة', // butterfly
   'خرافة', // fairytale
-  'منارة', // lantern
-  'أميرة', // 
-  'تأمين', // 
-  'بلاغة', // lantern
-  'منديل', // lantern
-  'مراقب', // lantern
-  'تيسير', // lantern
-  'نسويف', // lantern
-  'تسويق', // lantern
-  'صابون', // lantern
-  'بلادي', // lantern
-
-
-
-
-
+  'منارة', // lighthouse
+  'أميرة', // princess
+  'تأمين', // insurance
+  'بلاغة', // rhetoric
+  'منديل', // handkerchief
+  'مراقب', // observer
+  'تيسير', // facilitation
+  'نسويف', // feminist
+  'تسويق', // marketing
+  'صابون', // soap
+  'بلادي'  // my country
 ]
