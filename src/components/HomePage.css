@@ -79,10 +79,28 @@
   margin-top: 1rem;
   color: #d7dadc;
   font-size: 0.9rem;
+  background-color: #1e3a5f;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #90caf9;
+  width: 100%;
+  max-width: 300px;
 }
 
 .date, .puzzle-number, .author-name {
-  margin: 0.3rem 0;
+  margin: 0.5rem 0;
+}
+
+.date {
+  font-weight: bold;
+  color: #90caf9;
+  font-size: 1rem;
+}
+
+.puzzle-number {
+  font-weight: bold;
+  color: #ffd700;
+  font-size: 1.1rem;
 }
 
 /* Responsive design */
