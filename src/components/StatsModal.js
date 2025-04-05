@@ -1,66 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import './StatsModal.css';
-import config from '../config';
+import { getUserDailyWordKey } from '../utils/userUtils';
 
 function StatsModal({ onClose, stats, dailyGameCompleted, onPlayAgain, onHome }) {
-  const [serverStats, setServerStats] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [dataSource, setDataSource] = useState('local'); // 'local' or 'server'
-
-  useEffect(() => {
-    // Check if user is logged in
-    const token = localStorage.getItem('wordleToken');
-    if (token) {
-      fetchServerStats(token);
-    }
-  }, []);
-
-  const fetchServerStats = async (token) => {
-    setLoading(true);
-    try {
-      const response = await fetch(`${config.API_URL}/api/stats`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('فشل في جلب الإحصائيات');
-      }
-
-      const data = await response.json();
-      setServerStats(data);
-      setDataSource('server');
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-      setError('فشل في جلب الإحصائيات من الخادم');
-      setLoading(false);
-    }
-  };
-
-  const toggleDataSource = () => {
-    setDataSource(dataSource === 'local' ? 'server' : 'local');
-  };
+  // Frontend-only app - only using local stats with user-specific ID
 
   const calculateMaxDistribution = () => {
-    const currentStats = dataSource === 'server' && serverStats ? serverStats : stats;
-    if (!currentStats || !currentStats.guessDistribution) return 1;
-    return Math.max(...currentStats.guessDistribution, 1);
+    if (!stats || !stats.guessDistribution) return 1;
+    return Math.max(...stats.guessDistribution, 1);
   };
 
-  const displayStats = dataSource === 'server' && serverStats ? serverStats : stats;
+  const displayStats = stats;
 
-  if (loading && !displayStats) {
-    return (
-      <div className="stats-modal-overlay">
-        <div className="stats-modal-content">
-          <div className="loading">جاري التحميل...</div>
-        </div>
-      </div>
-    );
-  }
+  // Loading state removed - frontend-only app uses local storage
 
   if (!displayStats) {
     return (
@@ -82,8 +34,6 @@ function StatsModal({ onClose, stats, dailyGameCompleted, onPlayAgain, onHome })
     <div className="stats-modal-overlay" onClick={onClose}>
       <div className="stats-modal-content" onClick={(e) => e.stopPropagation()}>
         <h2 className="stats-modal-title">الإحصائيات</h2>
-        
-        {error && <div className="stats-error">{error}</div>}
         
         <div className="stats-summary">
           <div className="stats-box">
@@ -129,26 +79,23 @@ function StatsModal({ onClose, stats, dailyGameCompleted, onPlayAgain, onHome })
           ))}
         </div>
 
-        {localStorage.getItem('wordleToken') && serverStats && (
-          <div className="data-source-toggle">
-            <button 
-              onClick={toggleDataSource} 
-              className={`source-btn ${dataSource === 'local' ? 'active' : ''}`}
-            >
-              إحصائيات محلية
-            </button>
-            <button 
-              onClick={toggleDataSource} 
-              className={`source-btn ${dataSource === 'server' ? 'active' : ''}`}
-            >
-              إحصائيات الحساب
-            </button>
-          </div>
-        )}
+        {/* Data source toggle removed - frontend-only app */}
         
         {dailyGameCompleted && (
           <div className="daily-completed-actions">
             <p>لقد أكملت لعبة اليوم!</p>
+            {/* Always display the daily word when game is completed */}
+            <p className="daily-word">كلمة اليوم: {
+              (() => {
+                try {
+                  const storedWordData = localStorage.getItem(getUserDailyWordKey());
+                  return storedWordData ? JSON.parse(storedWordData).word : "";
+                } catch (error) {
+                  console.error("Error parsing daily word:", error);
+                  return "";
+                }
+              })()
+            }</p>
             <button className="play-random-btn" onClick={onPlayAgain}>
               العب كلمة عشوائية
             </button>
@@ -168,4 +115,4 @@ function StatsModal({ onClose, stats, dailyGameCompleted, onPlayAgain, onHome })
   );
 }
 
-export default StatsModal; 
+export default StatsModal;

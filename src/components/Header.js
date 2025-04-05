@@ -1,11 +1,22 @@
 import React from 'react';
 import './Header.css';
 
-function Header() {
+function Header({ onShowStats }) {
   return (
     <header className="header">
-      <h1 className="title">Wordle بالعربي</h1>
-      <div className="subtitle">احصل على 6 محاولات لتخمين كلمة من 5 أحرف</div>
+      <div className="header-left">
+        <button className="stats-button" onClick={onShowStats}>
+          الإحصائيات
+        </button>
+      </div>
+      
+      <div className="header-center">
+        <h1>Wordle بالعربي</h1>
+      </div>
+      
+      <div className="header-right">
+        {/* Authentication UI removed - frontend-only app */}
+      </div>
     </header>
   );
 }

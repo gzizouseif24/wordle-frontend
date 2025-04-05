@@ -1,8 +1,10 @@
-// API endpoint configuration
-const API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://wordle-backend-7vy5.onrender.com' // Backend URL already deployed on Render
-  : 'http://localhost:5000';
-
+// Configuration for frontend-only app
 export default {
-  API_URL
-}; 
+  // Local storage keys
+  STORAGE_KEYS: {
+    USER_ID: 'wordleUserId',
+    USER_STATS: 'wordleStats',
+    LAST_PLAYED: 'lastPlayed',
+    CURRENT_WORD: 'currentWord'
+  }
+};

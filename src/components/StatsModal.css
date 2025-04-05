@@ -175,6 +175,13 @@
   font-size: 1.1rem;
 }
 
+.daily-word {
+  color: #4caf50 !important;
+  font-weight: bold;
+  font-size: 1.2rem !important;
+  margin-bottom: 1.5rem !important;
+}
+
 .play-random-btn {
   background-color: #4caf50;
   color: white;
@@ -268,4 +275,4 @@
   .stats-summary {
     gap: 0.75rem;
   }
-} 
+}

@@ -2,17 +2,17 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import GameBoard from './components/GameBoard';
 import Keyboard from './components/Keyboard';
-import Header from './components/Header';
 import Modal from './components/Modal';
 import HomePage from './components/HomePage';
 import HowToPlay from './components/HowToPlay';
 import Footer from './components/Footer';
-import AuthModal from './components/AuthModal';
 import StatsModal from './components/StatsModal';
+import Header from './components/Header';
 import { wordList } from './data/words';
 import config from './config';
+import { getUserLastPlayedKey, getUserCurrentWordKey, getUserDailyWordKey, getUserStats, updateGameStats } from './utils/userUtils';
 
-// --- DEBUG --- Set this to a 5-letter Arabic string to force the first word, or null for random
+// --- DEBUG --- Set this to a 5-letter Arabic string to force the first word, or null for daily word
 const DEBUG_INITIAL_WORD = null; 
 // ------------- //
 
@@ -26,17 +26,24 @@ function App() {
   const [submittedGuesses, setSubmittedGuesses] = useState([]);
   const [showHomePage, setShowHomePage] = useState(true); // Show home page by default
   const [showHowToPlay, setShowHowToPlay] = useState(false); // How to play popup
-  const [showAuthModal, setShowAuthModal] = useState(false); // Authentication modal
+  // Authentication removed - frontend only app
   const [showStatsModal, setShowStatsModal] = useState(false); // Stats modal
-  const [user, setUser] = useState(null); // Logged-in user info
+  // User state removed - frontend only app
   const [dailyGameCompleted, setDailyGameCompleted] = useState(false); // Track if daily game is completed
   const [isRandomMode, setIsRandomMode] = useState(false); // New state for random word mode
   
-  // Check if user is already logged in and if daily game is completed
+  // Check if daily game is completed and reset for testing if needed
   useEffect(() => {
-    const storedUser = localStorage.getItem('wordleUser');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    // For testing: Reset localStorage to treat as new user when requested
+    const resetForTesting = true; // Set to true to reset for testing
+    
+    if (resetForTesting) {
+      // Clear all game-related localStorage items
+      localStorage.removeItem(getUserLastPlayedKey());
+      localStorage.removeItem(getUserCurrentWordKey());
+      localStorage.removeItem(getUserDailyWordKey());
+      // Don't clear stats to preserve them between sessions
+      // localStorage.removeItem(getUserStats());
     }
     
     // Check if today's game is already completed
@@ -44,8 +51,8 @@ function App() {
   }, []);
   
   // Function to check if today's game has been completed
-  const checkDailyGameStatus = () => {
-    const lastPlayedData = localStorage.getItem('lastPlayed');
+   const checkDailyGameStatus = () => {
+    const lastPlayedData = localStorage.getItem(getUserLastPlayedKey());
     
     if (lastPlayedData) {
       const { date, completed } = JSON.parse(lastPlayedData);
@@ -53,9 +60,15 @@ function App() {
       
       if (date === today && completed) {
         setDailyGameCompleted(true);
-        // Auto show stats if game was completed today
-        setShowStatsModal(true);
+        // Do not auto-show stats when user opens the app
+        // This ensures the stats modal doesn't appear automatically
       }
+    }
+    
+    // Check if there's a saved current word in localStorage
+    const savedWord = localStorage.getItem(getUserCurrentWordKey());
+    if (savedWord) {
+      setCurrentWord(savedWord);
     }
   };
 
@@ -88,13 +101,12 @@ function App() {
       // Check if the guess is correct
       if (currentGuessWord === currentWord) {
         setGameOver(true);
-        setModalContent(isRandomMode ? 'أحسنت! جاهز للكلمة التالية؟' : 'أحسنت! لقد فزت');
+        setModalContent(isRandomMode ? `أحسنت! الكلمة هي "${currentWord}"، جاهز للكلمة التالية؟` : `أحسنت! الكلمة هي "${currentWord}"، لقد فزت`);
         setShowModal(true);
         saveGameStats(true, currentGuess + 1);
         
-        // Only save to server if it's the daily game (not random mode)
+        // Mark daily game as completed if not in random mode
         if (!isRandomMode) {
-          saveGameToServer(true, currentGuess + 1, newSubmittedGuesses);
           markDailyGameCompleted();
         }
       } else if (currentGuess === 5) {
@@ -103,9 +115,8 @@ function App() {
         setShowModal(true);
         saveGameStats(false, 0);
         
-        // Only save to server if it's the daily game (not random mode)
+        // Mark daily game as completed if not in random mode
         if (!isRandomMode) {
-          saveGameToServer(false, 6, newSubmittedGuesses);
           markDailyGameCompleted();
         }
       } else {
@@ -124,12 +135,12 @@ function App() {
         setGuesses(newGuesses);
       }
     }
-  }, [currentGuess, currentWord, gameOver, guesses, submittedGuesses, dailyGameCompleted, isRandomMode]); // Added isRandomMode
+  }, [currentGuess, currentWord, gameOver, guesses, submittedGuesses, dailyGameCompleted, isRandomMode]);
   
   // Mark today's game as completed
   const markDailyGameCompleted = () => {
     const today = new Date().toDateString();
-    localStorage.setItem('lastPlayed', JSON.stringify({
+    localStorage.setItem(config.STORAGE_KEYS.LAST_PLAYED, JSON.stringify({
       date: today,
       completed: true
     }));
@@ -142,11 +153,10 @@ function App() {
   // Add an effect to handle the keyboard input that depends on the current game state
   useEffect(() => {
     const handlePhysicalKeyboard = (event) => {
-      // Skip handling if the focus is on an input field (for Auth modal)
+      // Skip handling if the focus is on an input field
       if (
         document.activeElement.tagName === 'INPUT' ||
-        document.activeElement.tagName === 'TEXTAREA' ||
-        showAuthModal  // Skip keyboard handling entirely if auth modal is open
+        document.activeElement.tagName === 'TEXTAREA'
       ) {
         return; // Allow normal input behavior in form fields
       }
@@ -181,62 +191,15 @@ function App() {
     return () => {
       window.removeEventListener('keydown', handlePhysicalKeyboard);
     };
-  }, [guesses, currentGuess, gameOver, currentWord, showAuthModal, handleKeyPress, dailyGameCompleted, isRandomMode]); // Added isRandomMode
+  }, [guesses, currentGuess, gameOver, currentWord, handleKeyPress, dailyGameCompleted, isRandomMode]);
   
-  // Save game statistics to localStorage
+  // Save game statistics to localStorage with user-specific ID
   const saveGameStats = (won, attempts) => {
-    const stats = JSON.parse(localStorage.getItem('gameStats')) || {
-      gamesPlayed: 0,
-      gamesWon: 0,
-      currentStreak: 0,
-      maxStreak: 0,
-      guessDistribution: [0, 0, 0, 0, 0, 0]
-    };
-    
-    // Only update stats for daily games, not random mode
-    if (!isRandomMode) {
-      stats.gamesPlayed += 1;
-      
-      if (won) {
-        stats.gamesWon += 1;
-        stats.currentStreak += 1;
-        stats.maxStreak = Math.max(stats.maxStreak, stats.currentStreak);
-        stats.guessDistribution[attempts - 1] += 1;
-      } else {
-        stats.currentStreak = 0;
-      }
-      
-      localStorage.setItem('gameStats', JSON.stringify(stats));
-    }
+    // Use the utility function to update game stats
+    updateGameStats(won, attempts);
   };
 
-  // Save game to server if user is logged in
-  const saveGameToServer = async (won, attempts, guessesArray) => {
-    const token = localStorage.getItem('wordleToken');
-    if (!token) return; // Don't save if not logged in
-    
-    try {
-      const response = await fetch(`${config.API_URL}/api/game`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          guesses: guessesArray,
-          result: won ? 'win' : 'lose',
-          attempts: attempts,
-          word: currentWord
-        })
-      });
-      
-      if (!response.ok) {
-        console.error('Failed to save game to server');
-      }
-    } catch (error) {
-      console.error('Error saving game:', error);
-    }
-  };
+  // Server-side saving removed - frontend only app
 
   // Close the modal
   const closeModal = () => {
@@ -255,34 +218,25 @@ function App() {
   };
   
   // Start a new random game
-  const startRandomGame = async () => {
-    try {
-      // Reset game state
-      setGuesses(Array(6).fill(''));
-      setCurrentGuess(0);
-      setGameOver(false);
-      setSubmittedGuesses([]);
-      setIsRandomMode(true);
-      
-      // Get a random word from the API
-      const response = await fetch(`${config.API_URL}/api/words/random`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch random word');
-      }
-      
-      const data = await response.json();
-      setCurrentWord(data.word);
-      
-      // Close any open modals
-      setShowStatsModal(false);
-      setShowHowToPlay(false);
-    } catch (error) {
-      console.error('Error starting random game:', error);
-      // If API call fails, fall back to a word from the local list
-      const randomIndex = Math.floor(Math.random() * wordList.length);
-      setCurrentWord(wordList[randomIndex]);
-    }
+  const startRandomGame = () => {
+    // Reset game state
+    setGuesses(Array(6).fill(''));
+    setCurrentGuess(0);
+    setGameOver(false);
+    setSubmittedGuesses([]);
+    setIsRandomMode(true);
+    
+    // Select a random word from our local list
+    const randomIndex = Math.floor(Math.random() * wordList.length);
+    const randomWord = wordList[randomIndex];
+    setCurrentWord(randomWord);
+    
+    // Store the current word in localStorage for persistence with user-specific ID
+    localStorage.setItem(getUserCurrentWordKey(), randomWord);
+    
+    // Close any open modals
+    setShowStatsModal(false);
+    setShowHowToPlay(false);
   };
 
   // Start the game from home page
@@ -310,32 +264,51 @@ function App() {
     // Set to daily game mode (not random)
     setIsRandomMode(false);
     
-    // Fetch the daily word from the API
-    const fetchDailyWord = async () => {
-      try {
-        // Use the API to get the daily word
-        const response = await fetch(`${config.API_URL}/api/words/daily`);
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch daily word');
-        }
-        
-        const data = await response.json();
-        setCurrentWord(data.word);
-      } catch (error) {
-        console.error('Error fetching daily word:', error);
-        // Fallback if the API call fails - select a random word from our local list
-        // Or use the debug word if set
-        if (DEBUG_INITIAL_WORD) {
-          setCurrentWord(DEBUG_INITIAL_WORD);
-        } else {
-          const randomIndex = Math.floor(Math.random() * wordList.length);
-          setCurrentWord(wordList[randomIndex]);
-        }
+    // Generate a daily word based on the current date
+    const generateDailyWord = () => {
+      // Use the current date to seed the random number generator
+      const today = new Date();
+      const dateString = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+      
+      // Simple hash function to convert date string to a number
+      let hash = 0;
+      for (let i = 0; i < dateString.length; i++) {
+        hash = ((hash << 5) - hash) + dateString.charCodeAt(i);
+        hash |= 0; // Convert to 32bit integer
       }
+      
+      // Use the hash to select a word from the list
+      const index = Math.abs(hash) % wordList.length;
+      return wordList[index];
     };
     
-    fetchDailyWord();
+    // Check if we already have today's word stored
+    const today = new Date().toDateString();
+    const storedWordData = localStorage.getItem(getUserDailyWordKey());
+    let dailyWord;
+    
+    if (storedWordData) {
+      const { date, word } = JSON.parse(storedWordData);
+      if (date === today) {
+        // Use the stored word if it's from today
+        dailyWord = word;
+      } else {
+        // Generate a new word for a new day
+        dailyWord = DEBUG_INITIAL_WORD || generateDailyWord();
+        // Store today's word with user-specific ID
+        localStorage.setItem(getUserDailyWordKey(), JSON.stringify({ date: today, word: dailyWord }));
+      }
+    } else {
+      // First time playing, generate and store a word
+      dailyWord = DEBUG_INITIAL_WORD || generateDailyWord();
+      localStorage.setItem(getUserDailyWordKey(), JSON.stringify({ date: today, word: dailyWord }));
+    }
+    
+    // Set the current word
+    setCurrentWord(dailyWord);
+    
+    // Store the current word in localStorage for persistence with user-specific ID
+    localStorage.setItem(getUserCurrentWordKey(), dailyWord);
   };
   
   // Handle Play Random Words button click
@@ -352,32 +325,17 @@ function App() {
     setShowStatsModal(false);
   };
   
-  // Show authentication modal
-  const handleShowAuthModal = () => {
-    setShowAuthModal(true);
-  };
-  
-  // Close authentication modal
-  const handleCloseAuthModal = () => {
-    setShowAuthModal(false);
-  };
-  
-  // Handle user login
-  const handleLogin = (userData) => {
-    setUser(userData);
-    localStorage.setItem('wordleUser', JSON.stringify(userData));
-  };
-  
-  // Handle user logout
-  const handleLogout = () => {
-    setUser(null);
-    localStorage.removeItem('wordleUser');
-    localStorage.removeItem('wordleToken');
-  };
+  // Authentication functions removed - frontend only app
   
   // Show stats modal
   const handleShowStats = () => {
     setShowStatsModal(true);
+    // Make sure to get the current daily word when showing stats
+    const storedWordData = localStorage.getItem(getUserDailyWordKey());
+    if (storedWordData) {
+      // This ensures the daily word is available in the stats modal
+      console.log('Daily word data loaded for stats');
+    }
   };
   
   // Close stats modal
@@ -385,26 +343,25 @@ function App() {
     setShowStatsModal(false);
   };
   
-  // Get local game stats
+  // Get local game stats with user-specific ID
   const getLocalStats = () => {
-    return JSON.parse(localStorage.getItem('gameStats')) || {
-      gamesPlayed: 0,
-      gamesWon: 0,
-      currentStreak: 0,
-      maxStreak: 0,
-      guessDistribution: [0, 0, 0, 0, 0, 0]
-    };
+    // Use the utility function to get user-specific stats
+    return getUserStats();
   };
   
   return (
     <div className="app-container">
-      <Header 
-        onShowStats={handleShowStats} 
-        onShowAuth={handleShowAuthModal}
-        onLogout={handleLogout}
-        user={user}
-        isLoggedIn={!!user}
-      />
+      {/* Show Header only on stats modal and how to play screens, not on home page */}
+      {(!showHomePage && (showStatsModal || showHowToPlay)) && <Header onShowStats={handleShowStats} />}
+      
+      {/* Show stats button only during gameplay */}
+      {!showHomePage && !showStatsModal && !showHowToPlay && (
+        <div className="stats-button-container" style={{ position: 'absolute', top: '10px', right: '10px' }}>
+          <button className="stats-button" onClick={handleShowStats}>
+            الإحصائيات
+          </button>
+        </div>
+      )}
       
       {showHomePage ? (
         <HomePage onStartGame={handleStartGame} />
@@ -427,24 +384,11 @@ function App() {
       <Footer />
       
       {showModal && (
-        <Modal onClose={closeModal}>
-          <div className="modal-content">
-            <p>{modalContent}</p>
-            <button onClick={closeModal}>إغلاق</button>
-          </div>
-        </Modal>
+        <Modal content={modalContent} onClose={closeModal} gameOver={gameOver} />
       )}
       
       {showHowToPlay && (
         <HowToPlay onClose={handleCloseHowToPlay} />
-      )}
-      
-      {showAuthModal && (
-        <AuthModal 
-          onClose={handleCloseAuthModal} 
-          onLogin={handleLogin}
-          apiUrl={config.API_URL}
-        />
       )}
       
       {showStatsModal && (
@@ -452,7 +396,7 @@ function App() {
           onClose={handleCloseStats}
           stats={getLocalStats()}
           dailyGameCompleted={dailyGameCompleted}
-          onPlayAgain={handlePlayRandomWords} // New prop for playing random words
+          onPlayAgain={handlePlayRandomWords}
           onHome={handleGoHome}
         />
       )}
