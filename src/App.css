@@ -1,0 +1,137 @@
+/* Main App Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Tajawal', 'Amiri', sans-serif;
+  background-color: #0a1929;
+  color: #ffffff;
+  direction: rtl;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 100%; /* Change vh to % for better mobile keyboard handling */
+  padding: 1rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* User Controls */
+.user-controls {
+  display: flex;
+  width: 100%;
+  padding: 0.5rem 0;
+  margin-bottom: 1rem;
+  justify-content: center;
+  gap: 1rem;
+  border-bottom: 1px solid #1e3a5f;
+}
+
+.login-button, .stats-button, .logout-button {
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-family: 'Tajawal', 'Amiri', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.login-button {
+  background-color: #3f51b5;
+  color: white;
+}
+
+.login-button:hover {
+  background-color: #303f9f;
+}
+
+.stats-button {
+  background-color: #4caf50;
+  color: white;
+}
+
+.stats-button:hover {
+  background-color: #388e3c;
+}
+
+.logout-button {
+  background-color: #f44336;
+  color: white;
+}
+
+.logout-button:hover {
+  background-color: #d32f2f;
+}
+
+.welcome-message {
+  display: flex;
+  align-items: center;
+  color: #90caf9;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .app {
+    padding: 0.5rem;
+  }
+  
+  .user-controls {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .login-button, .stats-button, .logout-button {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
+}
+
+/* Import Arabic fonts */
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Amiri:wght@400;700&display=swap');
+
+.completed-message {
+  text-align: center;
+  padding: 2rem;
+  margin: 2rem auto;
+  max-width: 500px;
+  background-color: #1e3a5f;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.completed-message h2 {
+  color: #ffffff;
+  margin-bottom: 1rem;
+  font-size: 1.8rem;
+}
+
+.completed-message p {
+  color: #dddddd;
+  margin-bottom: 1.5rem;
+  font-size: 1.2rem;
+}
+
+.show-stats-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 5px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.show-stats-button:hover {
+  background-color: #3d8b40;
+}

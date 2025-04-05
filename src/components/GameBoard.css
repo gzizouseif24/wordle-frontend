@@ -1,0 +1,134 @@
+.game-board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 1rem 0;
+  gap: 0.5rem;
+}
+
+.board-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tile {
+  width: 3.5rem;
+  height: 3.5rem;
+  border: 2px solid #1e3a5f;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  font-family: 'Tajawal', 'Amiri', sans-serif;
+}
+
+.tile.filled {
+  border-color: #3f51b5;
+}
+
+.tile.correct {
+  background-color: #4caf50;
+  border-color: #4caf50;
+  color: white;
+}
+
+.tile.present {
+  background-color: #ff9800;
+  border-color: #ff9800;
+  color: white;
+}
+
+.tile.absent {
+  background-color: #424242;
+  border-color: #424242;
+  color: white;
+}
+
+/* Animation for tile reveal */
+@keyframes flip {
+  0% {
+    transform: rotateX(0);
+  }
+  50% {
+    transform: rotateX(90deg);
+  }
+  100% {
+    transform: rotateX(0);
+  }
+}
+
+/* Animation for letter pop-up */
+@keyframes popIn {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  40% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.tile.filled {
+  animation: popIn 0.2s ease-in-out;
+}
+
+.tile.correct, .tile.present, .tile.absent {
+  animation: flip 0.5s;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .tile {
+    width: 2.8rem;
+    height: 2.8rem;
+    font-size: 1.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .tile {
+    width: 4rem;   /* Increase size for mobile */
+    height: 4rem;  /* Increase size for mobile */
+    font-size: 2.2rem; /* Increase font size for mobile */
+  }
+}
+
+@media (max-width: 480px) {
+  .game-board {
+    width: 100%;
+    max-width: 95vw;
+  }
+  
+  .board-row {
+    width: 100%;
+    gap: 0.35rem;
+    justify-content: center;
+  }
+  
+  .tile {
+    width: 3.8rem;  /* Much larger, similar to original Wordle */
+    height: 3.8rem; /* Much larger, similar to original Wordle */
+    font-size: 1.7rem;
+    border-width: 2px;
+  }
+}
+
+/* For very small screens */
+@media (max-width: 380px) {
+  .tile {
+    width: 3.3rem;
+    height: 3.3rem;
+    font-size: 1.6rem;
+  }
+  
+  .board-row {
+    gap: 0.25rem;
+  }
+}

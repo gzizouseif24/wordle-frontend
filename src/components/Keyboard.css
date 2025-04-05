@@ -1,0 +1,122 @@
+.keyboard {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.keyboard-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.3rem;
+}
+
+.keyboard-key {
+  min-width: 2.4rem;
+  height: 3.8rem;
+  border-radius: 4px;
+  border: none;
+  background-color: #1e3a5f;
+  color: white;
+  font-size: 1.3rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 0.5rem;
+  font-family: 'Tajawal', sans-serif;
+  transition: background-color 0.2s;
+}
+
+.keyboard-key:hover {
+  background-color: #2c4c7c;
+}
+
+.keyboard-key:active {
+  background-color: #3a5e94;
+}
+
+.special-key {
+  min-width: 4rem;
+  font-size: 1rem;
+}
+
+/* Key states based on guesses */
+.keyboard-key.correct {
+  background-color: #4caf50;
+}
+
+.keyboard-key.present {
+  background-color: #ff9800;
+}
+
+.keyboard-key.absent {
+  background-color: #424242;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .keyboard-key {
+    min-width: 1.8rem;
+    height: 3rem;
+    font-size: 1rem;
+    padding: 0 0.3rem;
+  }
+  
+  .special-key {
+    min-width: 3.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .keyboard-row {
+    gap: 0.2rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .keyboard-key {
+    min-width: 3rem; /* Increased further */
+    height: 4.5rem;    /* Increased further */
+    font-size: 1.6rem; /* Increased further */
+    padding: 0 0.3rem;
+  }
+
+  .special-key {
+     min-width: 5rem; /* Increased further */
+     font-size: 1.1rem;
+  }
+  
+  .keyboard-row {
+    gap: 0.2rem; /* Slightly reduce gap to fit more */
+  }
+}
+
+@media (max-width: 480px) {
+  .keyboard-key {
+    /* Adjust size for narrow screens like iPhone SE */
+    min-width: 1.6rem; /* Reduced width */
+    height: 3.2rem;    /* Keep height for touch */
+    font-size: 1rem;   /* Slightly smaller font if needed */
+    padding: 0 0.2rem; /* Adjust padding */
+  }
+  
+  .special-key {
+    /* Adjust special keys proportionally */
+    min-width: 3.1rem; /* Reduced width */
+    font-size: 0.8rem; /* Slightly smaller font */
+  }
+  
+  .keyboard {
+    /* Reduce bottom margin slightly */
+    margin-bottom: 0.5rem; 
+    /* Increase gap between rows */
+    gap: 0.4rem; 
+  }
+
+  .keyboard-row {
+     /* Decrease gap between keys for narrow screens */
+    gap: 0.2rem; 
+  }
+}

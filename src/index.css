@@ -1,0 +1,46 @@
+html,
+body,
+#root {
+  height: 100%; /* Ensure root elements take full height */
+  margin: 0; /* Often good to reset margin here too */
+  padding: 0; /* Reset padding */
+}
+
+body {
+  position: relative; /* Needed for the pseudo-element positioning */
+  z-index: 0; /* Establish stacking context */
+  font-family: 'Tajawal', 'Amiri', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #0a1929; /* Keep base background color */
+  color: #ffffff;
+}
+
+/* Add pseudo-element for the background image */
+body::before {
+  content: '';
+  position: fixed; /* Or absolute, fixed covers viewport */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('../assets/background.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.3; /* Increased opacity (less transparent) */
+  z-index: -1; /* Place it behind the body content */
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* RTL Support */
+[dir="rtl"] {
+  text-align: right;
+}
+
+/* Import Arabic fonts */
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Amiri:wght@400;700&display=swap');
