@@ -180,3 +180,54 @@ body {
 .show-stats-button:hover {
   background-color: #3d8b40;
 }
+
+/* Game stats button below board */
+.game-stats-button-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+}
+
+.game-stats-button {
+  background-color: #003366;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  font-family: 'Tajawal', 'Amiri', sans-serif;
+  transition: background-color 0.2s;
+}
+
+.game-stats-button:hover {
+  background-color: #004e8a;
+}
+
+@media (max-width: 480px) {
+  .game-stats-button-container {
+    margin-top: 0.5rem;
+    margin-bottom: 0;
+    padding: 0;
+  }
+  
+  .game-stats-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+}
+
+/* Game container to handle spacing with fixed keyboard */
+.app-container > div > .game-stats-button-container {
+  margin-bottom: 5.5rem; /* Space above keyboard when button is in container */
+}
+
+@media (max-width: 480px) {
+  .app-container > div > .game-stats-button-container {
+    margin-bottom: 6rem; /* More space on mobile */
+  }
+}

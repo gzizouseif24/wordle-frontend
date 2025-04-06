@@ -110,7 +110,7 @@
     width: 100%;
     max-width: 100%;
     margin-top: 1rem;
-    margin-bottom: 7rem; /* Add space for fixed keyboard */
+    margin-bottom: 1rem; /* Add space for the stats button */
   }
   
   .board-row {

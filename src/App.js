@@ -371,25 +371,33 @@ function App() {
       {/* Show Header only on stats modal and how to play screens, not on home page */}
       {(!showHomePage && (showStatsModal || showHowToPlay)) && <Header onShowStats={handleShowStats} />}
       
-      {/* Stats button removed from game screen as per user request */}
-      
       {showHomePage ? (
         <>
           <HomePage 
             onStartGame={handleStartGame} 
             onShowStats={handleShowStats}
-            hasStats={Boolean(localStorage.getItem(getUserStats()))}
+            hasStats={!!localStorage.getItem(getUserStats()) && JSON.parse(localStorage.getItem(getUserStats() || '{}'))?.gamesPlayed > 0}
           />
           <Footer />
         </>
       ) : (
         <>
-          <GameBoard 
-            guesses={guesses} 
-            currentGuess={currentGuess} 
-            currentWord={currentWord}
-            submittedGuesses={submittedGuesses}
-          />
+          <div style={{ position: 'relative', width: '100%' }}>
+            <GameBoard 
+              guesses={guesses} 
+              currentGuess={currentGuess} 
+              currentWord={currentWord}
+              submittedGuesses={submittedGuesses}
+            />
+            
+            {/* Stats button below game board but attached to it */}
+            <div className="game-stats-button-container">
+              <button className="game-stats-button" onClick={handleShowStats}>
+                الإحصائيات
+              </button>
+            </div>
+          </div>
+          
           <Keyboard 
             onKeyPress={handleKeyPress} 
             submittedGuesses={submittedGuesses}
