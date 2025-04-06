@@ -22,12 +22,31 @@ body {
   margin: 0 auto;
   padding: 0;
   overflow: hidden;
+  padding-bottom: 10rem; /* Add padding for fixed keyboard */
 }
 
-/* Game screen specific - more space for keyboard */
+/* Game screen specific */
 .app-container:not(:has(.home-page)) {
-  justify-content: space-between;
-  padding-bottom: 1rem;
+  justify-content: flex-start;
+  padding-bottom: 10rem; /* Space for fixed keyboard */
+}
+
+/* Home page doesn't need keyboard padding */
+.app-container:has(.home-page) {
+  padding-bottom: 0;
+}
+
+/* Mobile optimization for game screen */
+@media (max-width: 480px) {
+  .app-container:not(:has(.home-page)) {
+    padding: 0.5rem 0;
+    justify-content: flex-start;
+  }
+  
+  /* Add more vertical space between game board and keyboard */
+  .app-container:not(:has(.home-page)) > * + * {
+    margin-top: 1rem;
+  }
 }
 
 .app {

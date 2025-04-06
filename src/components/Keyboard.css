@@ -3,7 +3,14 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0;
+  position: fixed;
+  bottom: 1rem;
+  left: 0;
+  right: 0;
+  background-color: #0a1929;
+  padding: 0.5rem 0;
+  z-index: 10;
 }
 
 .keyboard-row {
@@ -82,60 +89,79 @@
   }
 
   .keyboard-key {
-    min-width: 3.2rem; /* Increased width */
-    height: 4.8rem;    /* Increased height */
-    font-size: 1.8rem; /* Increased font size */
-    padding: 0 0.3rem;
+    min-width: 2.7rem; /* Reduced from 3.2rem */
+    height: 4.2rem;    /* Reduced from 4.8rem */
+    font-size: 1.6rem; /* Reduced from 1.8rem */
+    padding: 0 0.2rem;
   }
 
   .special-key {
-     min-width: 5.5rem; /* Increased width */
-     font-size: 1.2rem; /* Increased font size */
+     min-width: 4.8rem; /* Reduced from 5.5rem */
+     font-size: 1rem;   /* Reduced from 1.2rem */
   }
   
   .keyboard-row {
-    gap: 0.3rem; /* Slight increase for better clickability */
+    gap: 0.2rem; /* Reduced from 0.3rem */
   }
 }
 
 @media (max-width: 480px) {
   .keyboard-key {
-    min-width: 2.2rem; /* Increased from 1.6rem */
-    height: 3.6rem;    /* Increased from 3.2rem */
-    font-size: 1.2rem; /* Increased from 1rem */
-    padding: 0 0.2rem;
+    min-width: 2rem;    /* Reduced from 2.2rem */
+    height: 3.4rem;     /* Reduced from 3.6rem */
+    font-size: 1.2rem;
+    padding: 0 0.15rem; /* Reduced padding */
   }
   
   .special-key {
-    min-width: 3.6rem; /* Increased from 3.1rem */
-    font-size: 0.9rem; /* Slightly increased */
+    min-width: 3.3rem;  /* Reduced from 3.6rem */
+    font-size: 0.8rem;  /* Reduced from 0.9rem */
   }
   
   .keyboard {
     margin-top: 1rem;
-    margin-bottom: 1.5rem; /* Increased for more space */
-    gap: 0.5rem; /* Increased gap between rows */
+    margin-bottom: 1.5rem;
+    gap: 0.4rem;        /* Reduced from 0.5rem */
   }
 
   .keyboard-row {
-    gap: 0.25rem; /* Increased gap between keys */
+    gap: 0.15rem;       /* Reduced from 0.25rem */
+  }
+}
+
+/* iPhone and similar mobile devices */
+@media (max-width: 414px) {
+  .keyboard-key {
+    min-width: 1.8rem;  /* Optimized for iPhone width */
+    height: 3.2rem;
+    font-size: 1.1rem;
+    padding: 0 0.1rem;
+  }
+  
+  .special-key {
+    min-width: 3rem;
+    font-size: 0.7rem;
+  }
+  
+  .keyboard-row {
+    gap: 0.12rem;
   }
 }
 
 /* Extra small screens */
 @media (max-width: 360px) {
   .keyboard-key {
-    min-width: 1.9rem;
-    height: 3.4rem;
-    font-size: 1.1rem;
+    min-width: 1.6rem;
+    height: 3rem;
+    font-size: 1rem;
   }
   
   .special-key {
-    min-width: 3.3rem;
-    font-size: 0.8rem;
+    min-width: 2.8rem;
+    font-size: 0.7rem;
   }
   
   .keyboard-row {
-    gap: 0.2rem;
+    gap: 0.1rem;
   }
 }
