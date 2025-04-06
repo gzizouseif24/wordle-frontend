@@ -5,18 +5,15 @@ function HomePage({ onStartGame }) {
   // Get current date
   const currentDate = new Date();
   
-  // Format date in Arabic
-  const formattedDate = currentDate.toLocaleDateString('ar-EG', {
+  // Format date in English
+  const formattedDate = currentDate.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric'
   });
   
-  // Calculate puzzle number (days since January 1, 2022 - when original Wordle launched)
-  const startDate = new Date(2022, 0, 1); // January 1, 2022
-  const timeDiff = currentDate.getTime() - startDate.getTime();
-  const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
-  const puzzleNumber = dayDiff + 1; // +1 because puzzle #1 was on day 1
+  // Fixed puzzle number (set to 1)
+  const puzzleNumber = 1;
 
   return (
     <div className="home-page">
