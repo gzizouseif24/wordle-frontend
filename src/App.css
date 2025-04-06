@@ -12,6 +12,24 @@ body {
   direction: rtl;
 }
 
+.app-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Game screen specific - more space for keyboard */
+.app-container:not(:has(.home-page)) {
+  justify-content: space-between;
+  padding-bottom: 1rem;
+}
+
 .app {
   display: flex;
   flex-direction: column;

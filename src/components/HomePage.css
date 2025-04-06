@@ -75,6 +75,29 @@
   background-color: #68a85e;
 }
 
+.button-container {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.stats-button {
+  padding: 0.8rem 1.5rem;
+  font-size: 1.2rem;
+  background-color: #003366;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-family: 'Tajawal', sans-serif;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.stats-button:hover {
+  background-color: #004e8a;
+}
+
 .game-info {
   margin-top: 1rem;
   color: #d7dadc;

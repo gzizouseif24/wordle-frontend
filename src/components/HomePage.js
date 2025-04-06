@@ -1,7 +1,7 @@
 import React from 'react';
 import './HomePage.css';
 
-function HomePage({ onStartGame }) {
+function HomePage({ onStartGame, onShowStats, hasStats }) {
   // Get current date
   const currentDate = new Date();
   
@@ -42,7 +42,12 @@ function HomePage({ onStartGame }) {
       <h1 className="home-title">Wordle بالعربي</h1>
       <p className="home-subtitle">احصل على 6 محاولات لتخمين كلمة من 5 أحرف</p>
       
-      <button className="play-button" onClick={onStartGame}>العب</button>
+      <div className="button-container">
+        <button className="play-button" onClick={onStartGame}>العب</button>
+        {hasStats && (
+          <button className="stats-button" onClick={onShowStats}>الإحصائيات</button>
+        )}
+      </div>
       
       <div className="game-info">
         <p className="date">{formattedDate}</p>

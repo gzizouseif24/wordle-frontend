@@ -371,17 +371,17 @@ function App() {
       {/* Show Header only on stats modal and how to play screens, not on home page */}
       {(!showHomePage && (showStatsModal || showHowToPlay)) && <Header onShowStats={handleShowStats} />}
       
-      {/* Show stats button only during gameplay */}
-      {!showHomePage && !showStatsModal && !showHowToPlay && (
-        <div className="stats-button-container" style={{ position: 'absolute', top: '10px', right: '10px' }}>
-          <button className="stats-button" onClick={handleShowStats}>
-            الإحصائيات
-          </button>
-        </div>
-      )}
+      {/* Stats button removed from game screen as per user request */}
       
       {showHomePage ? (
-        <HomePage onStartGame={handleStartGame} />
+        <>
+          <HomePage 
+            onStartGame={handleStartGame} 
+            onShowStats={handleShowStats}
+            hasStats={Boolean(localStorage.getItem(getUserStats()))}
+          />
+          <Footer />
+        </>
       ) : (
         <>
           <GameBoard 
@@ -398,7 +398,7 @@ function App() {
         </>
       )}
       
-      <Footer />
+      {/* Footer removed from game screen, kept only on home page */}
       
       {showModal && (
         <Modal content={modalContent} onClose={closeModal} gameOver={gameOver} />

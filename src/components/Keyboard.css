@@ -59,14 +59,14 @@
 /* Responsive design */
 @media (max-width: 768px) {
   .keyboard-key {
-    min-width: 1.8rem;
-    height: 3rem;
-    font-size: 1rem;
+    min-width: 2rem;
+    height: 3.2rem;
+    font-size: 1.1rem;
     padding: 0 0.3rem;
   }
   
   .special-key {
-    min-width: 3.5rem;
+    min-width: 3.8rem;
     font-size: 0.9rem;
   }
   
@@ -76,47 +76,66 @@
 }
 
 @media (max-width: 600px) {
+  .keyboard {
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+  }
+
   .keyboard-key {
-    min-width: 3rem; /* Increased further */
-    height: 4.5rem;    /* Increased further */
-    font-size: 1.6rem; /* Increased further */
+    min-width: 3.2rem; /* Increased width */
+    height: 4.8rem;    /* Increased height */
+    font-size: 1.8rem; /* Increased font size */
     padding: 0 0.3rem;
   }
 
   .special-key {
-     min-width: 5rem; /* Increased further */
-     font-size: 1.1rem;
+     min-width: 5.5rem; /* Increased width */
+     font-size: 1.2rem; /* Increased font size */
   }
   
   .keyboard-row {
-    gap: 0.2rem; /* Slightly reduce gap to fit more */
+    gap: 0.3rem; /* Slight increase for better clickability */
   }
 }
 
 @media (max-width: 480px) {
   .keyboard-key {
-    /* Adjust size for narrow screens like iPhone SE */
-    min-width: 1.6rem; /* Reduced width */
-    height: 3.2rem;    /* Keep height for touch */
-    font-size: 1rem;   /* Slightly smaller font if needed */
-    padding: 0 0.2rem; /* Adjust padding */
+    min-width: 2.2rem; /* Increased from 1.6rem */
+    height: 3.6rem;    /* Increased from 3.2rem */
+    font-size: 1.2rem; /* Increased from 1rem */
+    padding: 0 0.2rem;
   }
   
   .special-key {
-    /* Adjust special keys proportionally */
-    min-width: 3.1rem; /* Reduced width */
-    font-size: 0.8rem; /* Slightly smaller font */
+    min-width: 3.6rem; /* Increased from 3.1rem */
+    font-size: 0.9rem; /* Slightly increased */
   }
   
   .keyboard {
-    /* Reduce bottom margin slightly */
-    margin-bottom: 0.5rem; 
-    /* Increase gap between rows */
-    gap: 0.4rem; 
+    margin-top: 1rem;
+    margin-bottom: 1.5rem; /* Increased for more space */
+    gap: 0.5rem; /* Increased gap between rows */
   }
 
   .keyboard-row {
-     /* Decrease gap between keys for narrow screens */
-    gap: 0.2rem; 
+    gap: 0.25rem; /* Increased gap between keys */
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 360px) {
+  .keyboard-key {
+    min-width: 1.9rem;
+    height: 3.4rem;
+    font-size: 1.1rem;
+  }
+  
+  .special-key {
+    min-width: 3.3rem;
+    font-size: 0.8rem;
+  }
+  
+  .keyboard-row {
+    gap: 0.2rem;
   }
 }
